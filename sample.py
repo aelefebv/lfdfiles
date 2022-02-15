@@ -4,6 +4,7 @@ import mito_segmentation
 import apply_mask
 import calculate_gs
 import calculate_fb
+import export_gs_coords
 import csv
 from datetime import datetime
 
@@ -79,7 +80,7 @@ def get_mean_fb(path):
     path_to_fb_ims = path + '/fb'
     mito_mean_fb, mito_sample_names = calculate_fb.get_median_fb(path_to_fb_ims+'/mito')
     cyto_mean_fb, cyto_sample_names = calculate_fb.get_median_fb(path_to_fb_ims+'/cyto')
-    print("[INFO] exporting to csv...")
+    print("[INFO] exporting bound fraction to csv...")
     rn = datetime.today().strftime('%Y%m%d%H%M%S')
     with open(path_to_fb_ims + '/' + rn + '_mito_mean_fb.csv', 'w') as f:
         writer = csv.writer(f)
@@ -87,7 +88,22 @@ def get_mean_fb(path):
     with open(path_to_fb_ims + '/' + rn + '_cyto_mean_fb.csv', 'w') as f:
         writer = csv.writer(f)
         writer.writerows(zip(cyto_sample_names, cyto_mean_fb))
-    print(f"[INFO] csv saved to {path_to_fb_ims}/")
+    print(f"[INFO] csv of bound fraction saved to {path_to_fb_ims}/.")
+
+
+def export_gs(path):
+    path_to_gs_ims = path + '/gs'
+    g_coords_c, s_coords_c, sample_names_c = export_gs_coords.get_median_gs(path_to_gs_ims+'/cyto')
+    g_coords_m, s_coords_m, sample_names_m = export_gs_coords.get_median_gs(path_to_gs_ims+'/mito')
+    print("[INFO] export gs coordinates to csv...")
+    rn = datetime.today().strftime('%Y%m%d%H%M%S')
+    with open(path_to_gs_ims + '/' + rn + '_cyto_gs_coords.csv', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(zip(sample_names_c, g_coords_c, s_coords_c))
+    with open(path_to_gs_ims + '/' + rn + '_mito_gs_coords.csv', 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(zip(sample_names_m, g_coords_m, s_coords_m))
+    print(f"[INFO] csv of gs coords saved to {path_to_gs_ims}/.")
 
 
 def create_colormap_images(path):
@@ -109,7 +125,8 @@ def run():
     GET_GS_IMAGE = False
     CALCULATE_FRACTION_BOUND = False
     GET_MEAN_FB = False
-    CREATE_FULL_COLORMAP = True
+    CREATE_FULL_COLORMAP = False
+    EXPORT_GS_COORDS = True
 
     path = '/Users/austin/Documents/Collaborations/Franco/Austin_Kevin_Tharp'
 
@@ -135,6 +152,9 @@ def run():
     if CREATE_FULL_COLORMAP:
         # create_colormap_images(path_to_tifs)
         calculate_fb.get_median_stack(path_to_tifs+'/combo')
+
+    if EXPORT_GS_COORDS:
+        export_gs(path_to_tifs)
 
 
 if __name__ == '__main__':
