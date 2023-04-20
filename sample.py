@@ -1,3 +1,17 @@
+"""
+This script contains several functions for processing microscopy images. The workflow includes:
+
+Converting raw R64 files to TIFF format
+Segmenting images into mitochondria and cytoplasm
+Applying masks to the phase and modulation images
+Calculating G and S images from masked images
+Calculating the bound fraction from G and S images
+Saving the mean bound fraction values
+Creating colormap images
+Exporting G and S coordinates
+Each of these steps is controlled by a boolean flag in the run() function.
+"""
+
 import importing
 import exporting
 import mito_segmentation
@@ -10,6 +24,12 @@ from datetime import datetime
 
 
 def run_conversion(path):
+    """
+    Convert R64 files to TIFF format.
+
+    Args:
+        path (str): Path to the directory containing R64 files.
+    """
     all_files = importing.get_filename_list(path, '*.R64')
     file_num = 0
     for file in all_files:
@@ -19,6 +39,12 @@ def run_conversion(path):
 
 
 def run_segmentation(path):
+    """
+    Perform image segmentation on mitochondrial and cytosolic channels.
+
+    Args:
+        path (str): Path to the directory containing TIFF files.
+    """
     all_files = importing.get_filename_list(path, '*ch2*.tif')
     file_num = 0
     for file in all_files:  # 0:5 for testing
@@ -30,6 +56,12 @@ def run_segmentation(path):
 
 
 def run_masking(path):
+    """
+    Apply masks to phase and modulation channels.
+
+    Args:
+        path (str): Path to the directory containing segmented TIFF files.
+    """
     MED_FILTER_SIZE = 0
 
     mask_path = path + '/segmented'
@@ -49,6 +81,12 @@ def run_masking(path):
 
 
 def run_gs_calculation(path):
+    """
+    Calculate G and S values for each pixel in the image.
+
+    Args:
+        path (str): Path to the directory containing masked TIFF files.
+    """
     mask_path = path + '/masked'
     mito_mask_files = importing.get_filename_list(mask_path+'/mito', '*.tif')
     cyto_mask_files = importing.get_filename_list(mask_path+'/cyto', '*.tif')
@@ -63,6 +101,12 @@ def run_gs_calculation(path):
 
 
 def run_fb_calculation(path):
+    """
+    Calculate the fraction bound (FB) for each image.
+
+    Args:
+        path (str): Path to the directory containing G and S images.
+    """
     gs_path = path + '/gs'
     mito_gs_files = importing.get_filename_list(gs_path+'/mito', '*.tif')
     cyto_gs_files = importing.get_filename_list(gs_path+'/cyto', '*.tif')
@@ -77,6 +121,12 @@ def run_fb_calculation(path):
 
 
 def get_mean_fb(path):
+    """
+    Calculate and export the mean fraction bound (FB) values to a CSV file.
+
+    Args:
+        path (str): Path to the directory containing FB images.
+    """
     path_to_fb_ims = path + '/fb'
     mito_mean_fb, mito_sample_names = calculate_fb.get_median_fb(path_to_fb_ims+'/mito')
     cyto_mean_fb, cyto_sample_names = calculate_fb.get_median_fb(path_to_fb_ims+'/cyto')
@@ -92,6 +142,12 @@ def get_mean_fb(path):
 
 
 def export_gs(path):
+    """
+    Export G and S coordinate values to a CSV file.
+
+    Args:
+        path (str): Path to the directory containing G and S images.
+    """
     path_to_gs_ims = path + '/gs'
     g_coords_c, s_coords_c, sample_names_c = export_gs_coords.get_median_gs(path_to_gs_ims+'/cyto')
     g_coords_m, s_coords_m, sample_names_m = export_gs_coords.get_median_gs(path_to_gs_ims+'/mito')
@@ -107,6 +163,12 @@ def export_gs(path):
 
 
 def create_colormap_images(path):
+    """
+    Create colormap images by combining fraction bound (FB) images for mitochondria and cytosol.
+
+    Args:
+        path (str): Path to the directory containing FB images.
+    """
     fb_path = path+'/fb'
     files = importing.get_filename_list(fb_path+'/mito', '*.tif')
     num_files = 0
@@ -119,6 +181,10 @@ def create_colormap_images(path):
 
 
 def run():
+    """
+    Main function to execute different processing steps.
+    Modify the boolean flags to enable/disable specific steps.
+    """
     RUN_CONVERSION = False
     RUN_MITO_SEGMENTATION = False
     MASK_PHASE_MOD = False

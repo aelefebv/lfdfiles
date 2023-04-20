@@ -2,7 +2,7 @@ import importing
 import tifffile
 import numpy as np
 
-
+# Function to get median G and S values for a set of images
 def get_median_gs(path_to_gs_ims):
     gs_files = importing.get_filename_list(path_to_gs_ims, '*.tif')
     num_samples = importing.get_num_samples(gs_files, "CC0S_", 3)
@@ -14,18 +14,21 @@ def get_median_gs(path_to_gs_ims):
     sample_num = 0
     all_sample_names = []
     for file in gs_files:
+        # Get the frame number and sample name for each file
         frame_num_current, sample_name = importing.get_frame_number(file, "_$CC0S_", 3)
         if not frame_num_current:
             all_sample_names.append(sample_name)
             print(f"[INFO] getting median gs of sample {sample_num + 1} of {num_samples}")
             sample_num += 1
         if frame_num_current < frame_num:
+            # Calculate the mean median values for G and S and append them to the respective lists
             all_g_median_vals.append(np.nanmean(g_median_vals))
             all_s_median_vals.append(np.nanmean(s_median_vals))
             g_median_vals = []
             s_median_vals = []
             frame_num = 0
         else:
+            # Read the G and S images and calculate their median values
             gs_im = tifffile.imread(path_to_gs_ims+'/'+file)
             g_im = gs_im[0, :, :]
             s_im = gs_im[1, :, :]
